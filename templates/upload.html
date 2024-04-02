@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mango Fruit Classifier</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #333;
+            border-radius: 50%;
+            animation: spinner-rotate 1s linear infinite;
+        }
+
+        @keyframes spinner-rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Agrega un padding arriba */
+        .container {
+            padding-top: 20px; /* Puedes ajustar el valor según lo necesites */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4 mb-4">Mango Fruit Classifier</h1>
+        <form method="post" enctype="multipart/form-data" id="upload-form">
+            <div class="form-group">
+                <label for="image">Upload Image</label>
+                <input type="file" class="form-control-file" name="image" id="image" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload and Classify</button>
+        </form>
+        <div id="result" class="mt-4"></div>
+        <div id="spinner" class="spinner"></div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Show the loading spinner
+            document.getElementById('spinner').style.display = 'block';
+
+            // Send the form data asynchronously
+            const formData = new FormData(this);
+            const request = new XMLHttpRequest();
+
+            request.open('POST', '/');
+            request.send(formData);
+
+            request.onload = () => {
+                // Hide the loading spinner
+                document.getElementById('spinner').style.display = 'none';
+
+                if (request.status === 200) {
+                    const result = JSON.parse(request.responseText);
+                    document.getElementById('result').textContent = `Predicted class: ${result.class}`;
+                } else {
+                    document.getElementById('result').textContent = 'Error: Unable to classify the image';
+                }
+            };
+        });
+    </script>
+</body>
+</html>
