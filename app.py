@@ -44,10 +44,10 @@ def upload_image():
 
                 predicted_class_name = {
                     0: 'Alternaria',
-                    1: 'Anthracnose',
-                    2: 'Black Mould Rot',
-                    3: 'HEALTHY',
-                    4: 'STEM END ROT'
+                    1: 'Anthracnose - Antracnosis',
+                    2: 'Black Mould Rot - Moho Negro',
+                    3: 'Healthy - Sano',
+                    4: 'STEM END ROT - Podredumbre del Tallo'
                 }[predicted_class]
 
                 os.remove(file_path)
@@ -57,4 +57,4 @@ def upload_image():
     return render_template('upload.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
