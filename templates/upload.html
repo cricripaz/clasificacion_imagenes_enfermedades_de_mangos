@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mango Fruit Classifier</title>
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -32,6 +32,15 @@
         .container {
             padding-top: 20px; /* Puedes ajustar el valor según lo necesites */
         }
+
+        /* Estilo para el contenedor de resultados */
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f8f9fa; /* Color de fondo ligeramente gris */
+        }
     </style>
 </head>
 <body>
@@ -44,6 +53,11 @@
             </div>
             <button type="submit" class="btn btn-primary">Upload and Classify</button>
         </form>
+        <div class="mt-4">
+            <button id="camera_button" class="btn btn-secondary">Use Camera</button>
+        </div>
+        <div id="camera_feed" class="mb-4"></div>
+        <button id="capture_button" class="btn btn-primary" style="display: none;">Capture and Classify</button>
         <div id="result" class="mt-4"></div>
         <div id="spinner" class="spinner"></div>
     </div>
@@ -73,7 +87,7 @@
 
                 if (request.status === 200) {
                     const result = JSON.parse(request.responseText);
-                    document.getElementById('result').textContent = `Predicted class: ${result.class}`;
+                    document.getElementById('result').innerHTML = '<strong>Predicted class:</strong> ' + result.class;
                 } else {
                     document.getElementById('result').textContent = 'Error: Unable to classify the image';
                 }
