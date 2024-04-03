@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mango Fruit Classifier</title>
+    <title>Mango Fruit Classifier 🥭</title>
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -33,6 +33,12 @@
             padding-top: 20px; /* Puedes ajustar el valor según lo necesites */
         }
 
+        #camera_feed {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
         /* Estilo para el contenedor de resultados */
         #result {
             margin-top: 20px;
@@ -45,21 +51,32 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="mt-4 mb-4">Mango Fruit Classifier</h1>
+        <h1 class="mt-4 mb-4">Mango Fruit Classifier 🥭</h1>
+
         <form method="post" enctype="multipart/form-data" id="upload-form">
             <div class="form-group">
                 <label for="image">Upload Image</label>
                 <input type="file" class="form-control-file" name="image" id="image" accept="image/*" required>
             </div>
+
             <button type="submit" class="btn btn-primary">Upload and Classify</button>
         </form>
-        <div class="mt-4">
-            <button id="camera_button" class="btn btn-secondary">Use Camera</button>
-        </div>
-        <div id="camera_feed" class="mb-4"></div>
-        <button id="capture_button" class="btn btn-primary" style="display: none;">Capture and Classify</button>
+
         <div id="result" class="mt-4"></div>
+
+        <div id="camera_feed" class="mb-4">
+            <video id="video" width="640" height="480" autoplay playsinline style="display: none;"></video>
+        </div>
+
+        <button id="camera_button" class="btn btn-secondary">Use Camera</button>
+        <button id="close_camera_button" class="btn btn-danger" style="display: none;">Close Camera</button>
+
+
+        <button id="capture_button" class="btn btn-primary" style="display: none;">Capture and Classify</button>
+
         <div id="spinner" class="spinner"></div>
+
+
     </div>
 
     <!-- Bootstrap JS -->
@@ -67,32 +84,114 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    <script>
-        document.getElementById('upload-form').addEventListener('submit', function (event) {
+   <script>
+
+    $(document).ready(function() {
+        // Evento submit del formulario
+        $('#upload-form').submit(function(event) {
             event.preventDefault();
 
-            // Show the loading spinner
-            document.getElementById('spinner').style.display = 'block';
+            // Mostrar el spinner
+            $('#spinner').show();
 
-            // Send the form data asynchronously
-            const formData = new FormData(this);
-            const request = new XMLHttpRequest();
+            // Enviar la solicitud AJAX
+            $.ajax({
+                url: '/',
+                type: 'POST',
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    // Ocultar el spinner
+                    $('#spinner').hide();
 
-            request.open('POST', '/');
-            request.send(formData);
+                    // Mostrar el resultado
+                    $('#result').html('<strong>Predicted class:</strong> ' + response.class);
+                },
+                error: function() {
+                    // Ocultar el spinner
+                    $('#spinner').hide();
 
-            request.onload = () => {
-                // Hide the loading spinner
-                document.getElementById('spinner').style.display = 'none';
-
-                if (request.status === 200) {
-                    const result = JSON.parse(request.responseText);
-                    document.getElementById('result').innerHTML = '<strong>Predicted class:</strong> ' + result.class;
-                } else {
-                    document.getElementById('result').textContent = 'Error: Unable to classify the image';
+                    // Mostrar mensaje de error
+                    $('#result').text('Error: Unable to classify the image');
                 }
-            };
+            });
         });
-    </script>
+
+        // Evento click del botón "Use Camera"
+        $('#camera_button').click(function() {
+            // Mostrar la cámara y el botón "Close Camera"
+            $('#video, #capture_button, #close_camera_button').show();
+            $(this).hide();
+
+            // Obtener acceso al stream de la cámara
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    $('#video').get(0).srcObject = stream;
+                })
+                .catch(function(error) {
+                    console.error('Error accessing the camera: ', error);
+                });
+        });
+
+        // Evento click del botón "Capture and Classify"
+        $('#capture_button').click(function() {
+            // Capturar una imagen del video
+            const video = $('#video').get(0);
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            // Enviar la imagen para clasificación
+            classifyImage(imageData);
+        });
+
+        // Evento click del botón "Close Camera"
+        $('#close_camera_button').click(function() {
+            // Detener la cámara
+            const stream = $('#video').get(0).srcObject;
+            const tracks = stream.getTracks();
+            tracks.forEach(track => track.stop());
+            $('#video').get(0).srcObject = null;
+
+            // Ocultar la cámara y el botón "Close Camera"
+            $('#video, #capture_button, #close_camera_button').hide();
+            $('#camera_button').show();
+        });
+
+        // Función para enviar la imagen para clasificación
+        function classifyImage(imageData) {
+            // Mostrar el spinner
+            $('#spinner').show();
+
+            // Enviar la imagen para clasificación
+            $.ajax({
+                url: '/',
+                type: 'POST',
+                data: { image_data: imageData },
+                success: function(response) {
+                    // Ocultar el spinner
+                    $('#spinner').hide();
+
+                    // Mostrar el resultado
+                    $('#result').html('<strong>Predicted class:</strong> ' + response.class);
+                },
+                error: function() {
+                    // Ocultar el spinner
+                    $('#spinner').hide();
+
+                    // Mostrar mensaje de error
+                    $('#result').text('Error: Unable to classify the image');
+                }
+            });
+        }
+    });
+</script>
+
+
+
 </body>
 </html>

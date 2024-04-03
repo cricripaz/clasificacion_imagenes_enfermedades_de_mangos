@@ -28,13 +28,16 @@
     </style>
 </head>
 <body>
+
     <h1>Mango Fruit Classifier</h1>
+
     <form method="post" enctype="multipart/form-data" id="upload-form">
         <input type="file" name="image" accept="image/*" required>
         <button type="submit">Upload and Classify</button>
     </form>
     <div id="result"></div>
     <div id="spinner" class="spinner"></div>
+
     <script>
         document.getElementById('upload-form').addEventListener('submit', function (event) {
             event.preventDefault();
